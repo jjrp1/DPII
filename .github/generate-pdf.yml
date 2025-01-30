@@ -1,0 +1,53 @@
+name: Generar PDF con Pandoc y LaTeX
+
+on:
+  push:
+    branches:
+      - main  # Ejecuta el flujo al hacer push en la rama principal
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Clona el repositorio
+    - name: Clonar repositorio
+      uses: actions/checkout@v3 # actions/checkout@v4
+        
+
+    # 2. Convierte archivos Markdown a PDF usando la imagen Docker
+    - name: Convertir Markdown a PDF
+      uses: docker://pandoc/latex:3.5
+      with:
+        args: >
+          --from markdown
+          --to pdf
+          --output build/README.pdf
+          README.md
+
+    - name: Convertir con Pandoc
+      uses: docker://pandoc/core:2.12
+      with:
+        args: >-
+          --standalone
+          --output=build/index.html
+          README.md
+
+    - name: Generate PDF
+      uses: docker://pandoc/core:latest
+      with:
+        args: "*.md -o libro.pdf --toc --pdf-engine=xelatex"
+
+    # 3. Sube el PDF generado como artefacto
+    - name: Subir PDF como artefacto
+      uses: actions/upload-artifact@v3
+      with:
+        name: documento-pdf
+        path: salida.pdf
+
+    - name: Upload PDF
+      uses: actions/upload-artifact@v3
+      with:
+        name: libro.pdf
+        path: libro.pdf
+
